@@ -118,12 +118,12 @@ ENSG00000225937
 ```
 
 Specify the paths to the RNA-seq sample **folders** in
-quantification/sample_list.txt. For paired end libraries, each folder
+`quantification/sample_list.txt`. For paired end libraries, each folder
 should contain two files: a `*1.fastq.gz` for the forward reads and a
 `*2.fastq.gz` for the reverse. For single end designs, each sample folder
 should contain the relative fastq file.
 
-Please modify the launcher.sh script to pass the options necessary to
+Please modify the `launcher.sh` script to pass the options necessary to
 run the pipeline as follows:
 
 ```bash
@@ -137,16 +137,16 @@ nohup Rscript IP.R \
     path to the transcriptome \
     path to the annotation \
     path to the genome \
-    debug flag (T/F) **&**
+    debug flag (T/F) &
 ```
 
 If the Kallisto, Primer3 and Primersearch executables are available via
-the PATH, environment variable (which is the case if a dedicated conda
-environment was created as mentioned above), only the transcriptome,
+the `PATH`, environment variable (which is the case if a dedicated conda
+environment was created and activated as mentioned above), only the transcriptome,
 annotation and genome fields may be modified.
 
 Please remove any metacharacters and/or trailing white spaces from the
-script to avoid runtime errors. Remove nohup and & to launch the command
+script to avoid runtime errors. Remove `nohup` and `&` to launch the command
 in foreground.
 
 ## Launching the pipeline
