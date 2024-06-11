@@ -1,3 +1,10 @@
+IsoPrimer is a pipeline built to automate the designing process of PCR primer pairs, targeting specific sets of splicing variants.
+IsoPrimer works on the ENSEMBL annotation and allows the prioritization of the designed primers pairs, according to the level of expression of the splicing variants of a gene in an RNA-seq dataset.
+The pipeline leverages Kallisto, Primer3 and EMBOSS PrimerSearch tools, respectively to:
+1. identify the most expressed isoforms per gene in RNA-seq samples;
+1. design and consider all primer pairs overlapping exon-exon junctions common to the expressed variants;
+1. verify the specificity of the primer pairs designed.
+
 ## Requirements
 
 -   [R](https://www.r-project.org/) (at least 3.6.x)
@@ -41,7 +48,7 @@ conda install bioconda::primer3
 conda install bioconda::kallisto=0.46.2
 ```
 
-Alternatively, pre-compiled versions of Kallisto are available
+**Alternatively**, pre-compiled versions of Kallisto are available
 [here](https://pachterlab.github.io/kallisto/download) or the program
 may be compiled from source following the instructions available at the
 author's [github page](https://github.com/pachterlab/Kallisto/blob/master/INSTALL.md).
@@ -60,6 +67,28 @@ and then by compiling it as described in the dedicated
 [page](https://emboss.sourceforge.net/download/).
 
 ## Setting up the pipeline
+
+The outline of the pipeline setup is as follows:
+
+Clone the IsoPrimer repository:
+
+```bash
+git clone https://github.com/ermesfil/IsoPrimer.git
+```
+
+Then move to the IsoPrimer folder and launch the pipeline without modifying any files to run a test:
+
+```bash
+cd IsoPrimer
+bash launcher.sh
+```
+
+Finally, modify the `targets.txt`, `quantification/sample_list.txt` and `launcher.sh` text files appropriately
+as described in the following paragraphs then start the primer design with:
+
+```bash
+bash launcher.sh
+```
 
 ### Preparing the transcriptome headers
 
@@ -118,8 +147,15 @@ ENSG00000225937
 ```
 
 Specify the paths to the RNA-seq sample **folders** in
-`quantification/sample_list.txt`. For paired end libraries, each folder
-should contain two files: a `*1.fastq.gz` for the forward reads and a
+`quantification/sample_list.txt`. E.g.
+
+```bash
+/home/username/sample1
+/home/username/sample2
+/home/username/samplen
+```
+
+For paired end libraries, each folder should contain two files: a `*1.fastq.gz` for the forward reads and a
 `*2.fastq.gz` for the reverse. For single end designs, each sample folder
 should contain the relative fastq file.
 
@@ -141,8 +177,8 @@ nohup Rscript IP.R \
 ```
 
 If the Kallisto, Primer3 and Primersearch executables are available via
-the `PATH`, environment variable (which is the case if a dedicated conda
-environment was created and activated as mentioned above), only the transcriptome,
+the `PATH`, environment variable (which is the case if a **dedicated conda
+environment** was created and activated as mentioned above), only the transcriptome,
 annotation and genome fields may be modified.
 
 Please remove any metacharacters and/or trailing white spaces from the
@@ -180,9 +216,9 @@ following information:
 -   ENSEMBL transcript ID
 -   Forward primer sequence
 -   Reverse primer sequence
--   *Expressed amplified,* the number of isoforms whose expression is
+-   *Expressed amplified*, the number of isoforms whose expression is
     above the percentile threshold that are amplified by the primer pair
--   *Expressed percentage,* the percentage of the gene's total
+-   *Expressed percentage*, the percentage of the gene's total
     expression, quantified in TPM, that is amplified by the primer pair
 -   The amplicons predicted by the PrimerSearch in-silico PCR expressed
     as a space separated list of
