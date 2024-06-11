@@ -1,1 +1,1 @@
-~/IsoPrimer/test/tseq
+./test/tseq
