@@ -1,1 +1,1 @@
-./test/tseq
+../test/tseq
