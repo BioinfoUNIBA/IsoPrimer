@@ -1,9 +1,9 @@
-IsoPrimer is a pipeline built to automate the designing process of PCR primer pairs, targeting specific sets of splicing variants.
+IsoPrimer is a pipeline built to automate the designing process of PCR primer pairs, targeting specific sets of expressed splicing variants.
 IsoPrimer works on the ENSEMBL annotation and allows the prioritization of the designed primers pairs, according to the level of expression of the splicing variants of a gene in an RNA-seq dataset.
 The pipeline leverages Kallisto, Primer3 and EMBOSS PrimerSearch tools, respectively to:
-1. identify the most expressed isoforms per gene in RNA-seq samples;
+1. identify the most expressed isoforms per gene in RNA-seq data;
 1. design and consider all primer pairs overlapping exon-exon junctions common to the expressed variants;
-1. verify the specificity of the primer pairs designed.
+1. verify the specificity of the designed primer pairs.
 
 ## Requirements
 
@@ -117,14 +117,13 @@ IsoPrimer pipeline.
 
 Kallisto requires an index to be created to pseudoquantify transcripts.
 You may adjust the parameters in the indexing section of the
-quantification/kallister.sh script if necessary. See the [Kallisto manual](https://www.nature.com/articles/nbt.3519) for more details.
+quantification/kallister.sh script if necessary. See the [Kallisto manual](https://pachterlab.github.io/kallisto/manual) for more details.
 
-Kallisto requires information about a sequencing library to quantify its
-transcripts. Specifically, if the sequencing library the RNA-seq data
-has been obtained from is paired-ended, its strandedness should be
+Kallisto requires information about the RNA-seq library to quantify its
+transcripts. Specifically, if the sequencing is stranded and paired-ended, its strandedness should be
 specified via the dedicated parameters `--rf-stranded` or `--fr-stranded`.
-A single-ended library requires the `-s` and `-l` parameters instead. Please
-refer to the [Kallisto manual](https://www.nature.com/articles/nbt.3519)
+A single-ended library requires the `--single`, `-s` and `-l` parameters instead. Please
+refer to the [Kallisto manual](https://pachterlab.github.io/kallisto/manual)
 for a complete description of the options available.
 
 To set up Kallisto, open the `quantification/kallister.sh` script and
@@ -224,7 +223,7 @@ following information:
     as a space separated list of
     `<transcript-ensembl-id_amplicon-length>` entries
 
-IsoPrimer was designed to address all the expressed splicing variants
+IsoPrimer was designed to address all the expressed splicing variants,
 but this may not be possible with a single primer pair if the variants
 of interest do not share a common splicing junction. For this reason,
 IsoPrimer may return more than one primer couple for each target gene.
