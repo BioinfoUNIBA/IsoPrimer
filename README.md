@@ -210,8 +210,6 @@ following information:
 -   ENSEMBL gene ID
 -   IsoPrimer score: the higher, the better
 -   Gene symbol
--   Hugo Gene Naming Committee Name support (if available, the HGNC ID
-    is reported or, alternatively, the [havana ID](https://grch37.ensembl.org/info/genome/genebuild/manual_havana.html))
 -   ENSEMBL transcript ID
 -   Forward primer sequence
 -   Reverse primer sequence
