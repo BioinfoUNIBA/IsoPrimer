@@ -257,7 +257,7 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 				# A penalty is calculated for couples that
 				# generate different amplicons 
 				# (the penalty is proportional to the length difference).
-				# Primers making amplicons closer to 200bp
+				# Primers making amplicons closer to the average of the lenght interval specified by the user
 				# are preferred
 				charlie <- do.call(rbind, lapply(psc$detail, function (q)
 				{
@@ -265,6 +265,8 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 					saur <- which((seq_len(length(bulba)) %% 2)==0)
 					pika <- as.integer(bulba[saur])
 					chu <- which((seq_len(length(bulba)) %% 2)==1)
+					#ash <- mean(eval(parse(text= system('cat rock.bakup | grep PRIMER_PRODUCT_SIZE_RANGE | cut -d= -f2 | tr "-" ":"', intern=T))))
+					#c(max(pika)-min(pika), paste(bulba[chu], collapse=' '), (abs((ash-min(pika))/1000)))
 					c(max(pika)-min(pika), paste(bulba[chu], collapse=' '), (abs((200-min(pika))/1000)))
 				}))
 				# the maximum acceptable length difference 
@@ -425,18 +427,56 @@ if (nrow(fin)!=0)
 #                       #
 #########################
 
+hs1<- createStyle(fgFill = "#C9D7E9", halign = "CENTER", textDecoration = "Bold",
+	border = "TopBottomLeftRight", fontColour = "grey20", borderStyle="thin")
+bod<- createStyle(halign='LEFT', border = "TopBottomLeftRight", borderStyle="thin")
+xl <- createWorkbook()
 if (nrow(fin)!=0)
 {
-	write.table(fin, 'validation_candidates.txt', row.names=F, sep='\t', quote=F, na="")
-	write.xlsx(fin, 'validation_candidates.xlsx', asTable = T, overwrite = T, showNA=F)
-	write.xlsx(fin2, 'primers_order.xlsx', asTable = T, overwrite = T, showNA=F)
+	#write.table(fin, 'validation_candidates.txt', row.names=F, sep='\t', quote=F, na="")
+	# save the candidate-for-validation primers 
+	addWorksheet(xl, 'validation_candidates')
+	writeData(xl, sheet='validation_candidates', x=fin,
+		headerStyle=hs1,
+		borders="all",
+		borderStyle="thin")
+	addStyle(xl, sheet='validation_candidates', bod, cols=1:ncol(fin), rows=2:(nrow(fin)+1), gridExpand=T)
+	width_vec <- apply(fin, 2, function(x) {max(nchar(as.character(x)) + 4, na.rm = TRUE)})
+	width_vec_header <- nchar(colnames(fin)) + 4
+	max_vec_header <- pmax(width_vec, width_vec_header)
+	setColWidths(xl, sheet='validation_candidates', cols=1:ncol(fin), widths=max_vec_header)
+	# save the candidates in a ready for order format
+	addWorksheet(xl, 'primers_order')
+	writeData(xl, sheet='primers_order', x=fin2,
+		headerStyle=hs1,
+		borders="all",
+		borderStyle="thin")
+	addStyle(xl, sheet='primers_order', bod, cols=1:ncol(fin2), rows=2:(nrow(fin2)+1), gridExpand=T)
+	width_vec <- apply(fin2, 2, function(x) {max(nchar(as.character(x)) + 4, na.rm = TRUE)})
+	width_vec_header <- nchar(colnames(fin2)) + 4
+	max_vec_header <- pmax(width_vec, width_vec_header)
+	setColWidths(xl, sheet='primers_order', cols=1:ncol(fin2), widths=max_vec_header)
+	#write.xlsx(fin, 'validation_candidates.xlsx', asTable = T, overwrite = T, showNA=F)
+	#write.xlsx(fin2, 'primers_order.xlsx', asTable = T, overwrite = T, showNA=F)
 	# Prep a table for a primersearch check of primers vs the genome
 	write.table(fin[, c(3,5,6)], 'val_cand_4genomcheck.txt', row.names=F, sep='\t', quote=F, na="")
 	# Launch the in-silico PCR vs the genome
 	system('nohup bash psearcher_fingen.sh &')
 	system('echo [IsoPrimer] $(date) Generating reports and checking cDNA specificity >> IP_Log.out')
 }
-write.xlsx(swag, 'primer_omnibus.xlsx', asTable = T, overwrite = T)
+# save complete version
+addWorksheet(xl, 'primer_omnibus')
+writeData(xl, sheet='primer_omnibus', x=swag,
+	headerStyle=hs1,
+	borders="all",
+	borderStyle="thin")
+addStyle(xl, sheet='primer_omnibus', bod, cols=1:ncol(swag), rows=2:(nrow(swag)+1), gridExpand=T)
+width_vec <- apply(swag, 2, function(x) {max(nchar(as.character(x)) + 4, na.rm = TRUE)})
+width_vec_header <- nchar(colnames(swag)) + 4
+max_vec_header <- pmax(width_vec, width_vec_header)
+setColWidths(xl, sheet='primer_omnibus', cols=1:ncol(swag), widths=max_vec_header)
+#write.xlsx(swag, 'primer_omnibus.xlsx', asTable = T, overwrite = T)
+saveWorkbook(xl, "primers.xlsx", overwrite=T)
 
 #########################
 #                       #

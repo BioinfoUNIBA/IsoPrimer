@@ -67,7 +67,7 @@ exons[,1:2] <- apply(exons[,1:2], 2, vercutter)
 # that you want to design primers for
 silt <- scan('targets.txt', what='character')
 silt <- vercutter(silt)
-system(paste('echo [IsoPrimer.prepper.R] $(date) List of target genes "', as.character(length(silt)), '", loaded >> IP_Log.out'))
+system(paste0('echo [IsoPrimer.prepper.R] $(date) List of target genes: "', as.character(length(silt)), '" loaded >> IP_Log.out'))
 
 TRANSCRIPTOME<- Sys.getenv('TRANSCRIPTOME')
 seqs <- readDNAStringSet(TRANSCRIPTOME)

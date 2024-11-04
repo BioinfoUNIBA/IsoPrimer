@@ -197,14 +197,12 @@ stdout) and `IP_Log.out` (IsoPrimer messages) files.
 
 ## Results
 
-The main final product of the primer design process consists in 3
-spreadsheets: I) `primer_omnibus.xlsx` which reports all the primer pairs
-designed for all target genes; II) `validation_candidates.xlsx` which
-contains a list of the primer couples that satisfy the predefined
-quality criteria and III) `primers_order.xlsx` which reports them in a
-ready-for-order format.
+The main final product of the primer design process consists in a primers.xlsx file with
+3 spreadsheets: I) validation_candidates which contains a list of the primer pairs that satisfy the predefined quality criteria;
+II) primers_order which reports primer pairs in a ready-for-order format;
+III) primer_omnibus which reports all primer pairs designed for all target genes.
 
-The output spreadsheet I) and II) report for each primer pair the
+The output spreadsheet I) and III) report for each primer pair the
 following information:
 
 -   ENSEMBL gene ID

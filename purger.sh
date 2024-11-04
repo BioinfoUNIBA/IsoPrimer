@@ -9,13 +9,13 @@ rm \
 	genomic_amplimers.txt \
 	genomic_mismatch.txt \
 	val_cand_4genomcheck.txt \
-	./*RData \
-	./*primersearch \
-	./[0-9]*_*txt \
+	../IsoPrimer/*RData \
+	../IsoPrimer/*primersearch \
+	../IsoPrimer/[0-9]*_*txt \
 	outputs/[0-9]*_*txt
 
 rm \
-	./quantification/KA_CountingOutput/kalcounts.tsv \
-	./quantification/KA_index/index.idx
+	../IsoPrimer/quantification/KA_CountingOutput/kalcounts.tsv \
+	../IsoPrimer/quantification/KA_index/index.idx
 
-find ./quantification/KA_CountingOutput -name abundance.tsv -exec bash -c 'rm -rd $(dirname {})' \;
+find ../IsoPrimer/quantification/KA_CountingOutput -name abundance.tsv -exec bash -c 'rm -rd $(dirname {})' \;
