@@ -12,10 +12,10 @@ rm \
 	../IsoPrimer/*RData \
 	../IsoPrimer/*primersearch \
 	../IsoPrimer/[0-9]*_*txt \
-	outputs/[0-9]*_*txt
+	outputs/[0-9]*_*txt 2>/dev/null
 
 rm \
 	../IsoPrimer/quantification/KA_CountingOutput/kalcounts.tsv \
-	../IsoPrimer/quantification/KA_index/index.idx
+	../IsoPrimer/quantification/KA_index/index.idx 2>/dev/null
 
-find ../IsoPrimer/quantification/KA_CountingOutput -name abundance.tsv -exec bash -c 'rm -rd $(dirname {})' \;
+find ../IsoPrimer/quantification/KA_CountingOutput -name abundance.tsv -exec bash -c 'rm -rd $(dirname {})' \; 2>/dev/null

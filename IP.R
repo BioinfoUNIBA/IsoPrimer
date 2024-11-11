@@ -92,7 +92,7 @@ if (!file.exists('mod_transcriptome.fa'))
 TRANSCRIPTOME <- paste0(getwd(), '/', 'mod_transcriptome.fa')
 Sys.setenv(TRANSCRIPTOME = TRANSCRIPTOME)
 system('cd quantification/ && bash kallister.sh && echo [IsoPrimer.Kallisto] $(date) Running Kallisto >> ../IP_Log.out')
-system('cd quantification/KA_CountingOutput/ && bash kalcounting.sh && echo [IsoPrimer.Kallisto] $(date) Quantification complete >> ../../IP_Log.out')
+system('cd quantification/KA_CountingOutput/ && [ -e kalcounts.tsv ] || bash kalcounting.sh && echo [IsoPrimer.Kallisto] $(date) Quantification complete >> ../../IP_Log.out')
 kal<-read.table('quantification/KA_CountingOutput/kalcounts.tsv', header=T, sep='\t', as.is=T)
 if (length(which(duplicated(kal$t_name)))!=0) {kal<-kal[-which(duplicated(kal$t_name)),]}
 row.names(kal)<-kal$t_name
