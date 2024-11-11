@@ -83,6 +83,12 @@ cd IsoPrimer
 bash launcher.sh
 ```
 
+Remove the test specific files by running the following in the IsoPrimer folder:
+
+```bash
+bash purger.sh
+```
+
 Finally, modify the `targets.txt`, `quantification/sample_list.txt` and `launcher.sh` text files appropriately
 as described in the following paragraphs then start the primer design with:
 
@@ -241,12 +247,34 @@ generated in the *outputs* folder with the following information:
     structures and hairpins generated within the primers and relative
     estimates about their stability)
 
+## Primer design for manually picked isoforms
+
+IsoPrimer allows for designing primer pairs targeting known variants even without RNA-seq data.
+In fact, given the appropriate annotation files and a customized Kallisto
+quantification output specified in the `IsoPrimer/quantification/KA_CountingOutput/kalcounts.tsv`,
+prepared by manually entering high expression values for one or more isoforms of interest,
+IsoPrimer will provide primer pairs designed to amplify the manually prioritized isoforms.
+For example, to instruct IsoPrimer to specifically design a primer pair for the *Odc1-207* transcript variant
+(ENSEMBL ID ENSMUST00000222250) of the murine *Odc* gene, without performing the Kallisto transcript quantification,
+the user may provide a `kalcounts.tsv` file structured as exemplified in the table below.
+
+| t_name            | tseq  |
+|-------------------|-------|
+| ENSMUST00000171737 | 0     |
+| ENSMUST00000222617 | 0     |
+| ENSMUST00000221701 | 0     |
+| ENSMUST00000220947 | 0     |
+| ENSMUST00000221613 | 0     |
+| ENSMUST00000220849 | 0     |
+| ENSMUST00000221354 | 0     |
+| ENSMUST00000222250 | 1e+06 |
+
 ## Troubleshooting
 
 IsoPrimer progressively saves the results it produces to facilitate the
 debug process and to restart from the last step it performed upon
 interruption.
 
-When changing annotation, launch purger.sh **in the IsoPrimer folder**
+When changing annotation, launch `purger.sh` in the IsoPrimer folder
 to delete the previous results and reset the pipeline (except for the
-xlsx files which are overwritten at each primer pair design run).
+xlsx file which gets overwritten at each primer pair design run).
