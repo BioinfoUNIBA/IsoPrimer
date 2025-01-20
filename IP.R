@@ -360,6 +360,32 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 swag[,which(sapply(swag, class)=='numeric')]<- apply(swag[,which(sapply(swag, class)=='numeric')],
 					    2, round, digits=2)
 
+# Thorough symbol check with GENCODE annotation
+# you need a gencode table for this
+barcoder <- function (string, feature)
+{
+	feature_list <- strsplit(string, '; ')[[1]]
+	barcode_pos <- grep(feature, feature_list)
+	snippet <- sapply(strsplit(feature_list[barcode_pos], ' '), `[`, 2)
+	if (length(barcode_pos)==0) {snippet <- 'NA'}
+	return(snippet)
+}
+genid <- lapply(gencode$features[which(gencode$type == 'gene')],
+	barcoder, feature='gene_id')
+genid <- as.character(vercutter(genid))
+gename <- lapply(gencode$features[which(gencode$type == 'gene')],
+	barcoder, feature='gene_name')
+gename <- as.character(gename)
+genhugo <- lapply(gencode$features[which(gencode$type == 'gene')],
+	barcoder, feature='hgnc_id')
+genhugo <- as.character(genhugo)
+gentab <- as.data.frame(cbind(genid, gename, genhugo))
+names(gentab) <- c('name', 'symbol', 'HGNC_support')
+gentab$name<- vercutter(gentab$name)
+
+swag <- left_join(swag, gentab, by='name')
+swag <- swag[, c(1, 8, 9, 2:4, 6, 7, 5)]
+
 save(swag, file='finished_product.RData')
 system('rm *temp')
 
@@ -378,7 +404,7 @@ fin <- do.call(rbind, lapply(unique(swag$name), function (ua)
 			{
 				if (x>quantile(pan, (as.numeric(PEXPRESSION)/100)))
 			{ as.double((x/max(pan))+100) } else { 0 }})
-			mz <- lapply(names(pun[pun!=0]), function(e) {grep(e, me[me$score>0, 5])})
+			mz <- lapply(names(pun[pun!=0]), function(e) {grep(e, me[me$score>0, 9])})
 			me[me$score>0, ][unlist(unique(lapply(mz, function (e) {e[1]}))),]
 		} else
 		{
@@ -387,32 +413,9 @@ fin <- do.call(rbind, lapply(unique(swag$name), function (ua)
 	}))
 if (any(is.na(fin$name))) {fin<- fin[-which(is.na(fin$name)),]}
 
+
 if (nrow(fin)!=0)
 {
-	# Thorough symbol check with GENCODE annotation
-	# you need a gencode table for this
-	barcoder <- function (string, feature)
-	{
-		feature_list <- strsplit(string, '; ')[[1]]
-		barcode_pos <- grep(feature, feature_list)
-		snippet <- sapply(strsplit(feature_list[barcode_pos], ' '), `[`, 2)
-		if (length(barcode_pos)==0) {snippet <- 'NA'}
-		return(snippet)
-	}
-	genid <- lapply(gencode$features[which(gencode$type == 'gene')],
-		barcoder, feature='gene_id')
-	genid <- as.character(vercutter(genid))
-	gename <- lapply(gencode$features[which(gencode$type == 'gene')],
-		barcoder, feature='gene_name')
-	gename <- as.character(gename)
-	genhugo <- lapply(gencode$features[which(gencode$type == 'gene')],
-		barcoder, feature='hgnc_id')
-	genhugo <- as.character(genhugo)
-	gentab <- as.data.frame(cbind(genid, gename, genhugo))
-	names(gentab) <- c('name', 'symbol', 'HGNC_support')
-	gentab$name<- vercutter(gentab$name)
-	fin <- left_join(fin, gentab, by='name')
-	fin <- fin[, c(1, 8, 9, 2:4, 6, 7, 5)]
 	fin$t_name <- sapply(strsplit(fin$t_name, '_'), `[`, 1)
 	fin[, 2:3] <- apply(fin[2:3], 2, as.character)
 
