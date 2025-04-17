@@ -71,8 +71,17 @@ system(paste0('echo [IsoPrimer.prepper.R] $(date) List of target genes: "', as.c
 
 TRANSCRIPTOME<- Sys.getenv('TRANSCRIPTOME')
 seqs <- readDNAStringSet(TRANSCRIPTOME)
-agnames <- sapply(strsplit(names(seqs), '_|\\.|\\|'), `[`, 3)
-atnames <- sapply(strsplit(names(seqs), '_|\\.|\\|'), `[`, 1)
+if (length(grep('transcript_id', names(seqs)))==0)
+{
+	atnames <- sapply(strsplit(names(seqs), '[^[:alnum:]_]+'), `[`, 1)
+} else {
+	atnames <- gsub('.*transcript_id=([^]\\.]*).*', '\\1', names(seqs))
+}
+agnames <- transcripts$name[match(atnames, transcripts$t_name)]
+names(seqs) <- paste(atnames, agnames, sep=';')
+if (!any(agnames%in%transcripts$name)) {stop(paste0('Please provide the transcriptome FASTA file headers as ">', atnames[1], '"'), call.=FALSE)}
+writeXStringSet(seqs, 'mod_transcriptome.fa')
+
 seqs <- data.frame(agnames, atnames, as.character(seqs, use.names=F))
 names(seqs) <- c('name', 't_name', 'sjs')
 seqs <- right_join(transcripts[,c(2,7:8)], seqs, by='t_name')
@@ -80,6 +89,7 @@ seqs <- seqs[, match(c("name", "strand", "t_name", "length", "sjs"), names(seqs)
 seqs[,c(1,2,3,5)] <- apply(seqs[,c(1,2,3,5)], 2, as.character)
 
 cln <- seqs[which(seqs$name %in% silt), ]
+if (nrow(cln)==0) {stop(paste('Please provide target genes in the following format:', agnames[1]), call.=FALSE)}
 
 sj_find <- function (tname, strand, seq)
 {
@@ -113,9 +123,9 @@ cln$sjs <- as.character(cln$sjs)
 # of the isoforms of all difexp lnc
 write.table(cln, 'sj_seqs.tsv', row.names=F, sep='\t', quote=F)
 
-# the tplus for checktnames is 
+# the tplus for IP.R is 
 # "name" "t_name" "transcript_sequence"(without colons) "exons_junction"
-# of the driver isoforms
+# of the isoforms
 tplus<-cln
 tplus['exons_junction']<-sapply(tplus$sjs, function (x)
 	{
@@ -128,4 +138,4 @@ names(tplus)[3]<-'transcript_sequence'
 
 save(cln, tplus, gencode, transcripts, exons, file='wsp.RData')
 
-# proceed with checktnames.R
+# proceed with IP.R

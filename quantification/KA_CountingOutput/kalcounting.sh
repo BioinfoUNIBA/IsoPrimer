@@ -22,6 +22,6 @@ sed -i "1,11s/\n/\t/g" $OUT
 
 # Add row names (transcript IDs)
 cat $OUT > $TMP
-paste <(cut -d$'.' -f1 "${KAL%%$'\n'*}" | sed "1s/.*/t_name/") $TMP > $OUT
+paste <(cut -d$';' -f1 "${KAL%%$'\n'*}" | sed "1s/.*/t_name/") $TMP > $OUT
 sed -i "s/\t\+/\t/g" $OUT
 rm $TMP

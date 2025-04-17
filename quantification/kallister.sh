@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -e KA_index/index.idx ] || "$KALLISTO" index \
+[ -e KA_index/index.idx ] || [ -e KA_CountingOutput/kalcounts.tsv ] || "$KALLISTO" index \
 -i ./KA_index/index.idx \
 --make-unique \
 "$TRANSCRIPTOME"

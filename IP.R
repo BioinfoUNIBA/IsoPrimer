@@ -81,30 +81,36 @@ m1<-paste0("Arguments supplied: \n",
 	"\t\tGenome (.fa): ", GENOME, "\n")
 system(paste0('echo [IsoPrimer] $(date) Primer design started: "', as.character(m1), '"', ' > IP_Log.out'))
 
-# Transcript quantification
-# Build the Kallisto index and start the quantification process
-
-if (!file.exists('mod_transcriptome.fa'))
-{
-	system('bash headmod.sh || echo "[IsoPrimer.header_modder.sh] $(date) Please modify the headers of the transcriptome FASTA file" >> IP_Log.out')
-	if (!file.exists('mod_transcriptome.fa')) { stop('headmod.sh could not create mod_transcriptome.fa, please modify the headers of the transcriptome FASTA file', call.=FALSE) }
-}
-TRANSCRIPTOME <- paste0(getwd(), '/', 'mod_transcriptome.fa')
-Sys.setenv(TRANSCRIPTOME = TRANSCRIPTOME)
-system('cd quantification/ && bash kallister.sh && echo [IsoPrimer.Kallisto] $(date) Running Kallisto >> ../IP_Log.out')
-system('cd quantification/KA_CountingOutput/ && [ -e kalcounts.tsv ] || bash kalcounting.sh && echo [IsoPrimer.Kallisto] $(date) Quantification complete >> ../../IP_Log.out')
-kal<-read.table('quantification/KA_CountingOutput/kalcounts.tsv', header=T, sep='\t', as.is=T)
-if (length(which(duplicated(kal$t_name)))!=0) {kal<-kal[-which(duplicated(kal$t_name)),]}
-row.names(kal)<-kal$t_name
-kal<-kal[, -1, drop=F]
-
-# cln stores info about the driver lncRNA isoforms
+# cln stores info about the isoforms
 # tplus also, but sjs positions are numbered and not identified by colons
 # everything is in wsp.RData which is the final product of prepper.R
 
 system('echo [IsoPrimer.prepper.R] $(date) Annotation parsing started >> IP_Log.out')
 ifelse(file.exists('wsp.RData'), load('wsp.RData'), source('prepper.R'))
 system('echo [IsoPrimer.prepper.R] $(date) Annotation parsing complete >> IP_Log.out')
+
+if (!file.exists('mod_transcriptome.fa'))
+{
+	system('echo "[IsoPrimer.prepper.R] $(date) Please modify the headers of the transcriptome FASTA file" >> IP_Log.out')
+	stop('Please modify the headers of the transcriptome FASTA file', call.=FALSE)
+}
+TRANSCRIPTOME <- paste0(getwd(), '/', 'mod_transcriptome.fa')
+Sys.setenv(TRANSCRIPTOME = TRANSCRIPTOME)
+
+# Transcript quantification
+# Build the Kallisto index and start the quantification process
+if (KALLISTO=='custom')
+{
+	system('echo [IsoPrimer.Kallisto] $(date) Transcript quantification already provided >> ../IP_Log.out')
+} else {
+	system('cd quantification/ && echo [IsoPrimer.Kallisto] $(date) Running Kallisto >> ../IP_Log.out && bash kallister.sh')
+	system('cd quantification/KA_CountingOutput/ && [ -e kalcounts.tsv ] || bash kalcounting.sh && echo [IsoPrimer.Kallisto] $(date) Transcript quantification complete >> ../../IP_Log.out')
+}
+
+kal<-read.table('quantification/KA_CountingOutput/kalcounts.tsv', header=T, sep='\t', as.is=T)
+if (length(which(duplicated(kal$t_name)))!=0) {kal<-kal[-which(duplicated(kal$t_name)),]}
+row.names(kal)<-kal$t_name
+kal<-kal[, -1, drop=F]
 
 vercutter <- function (ids)
 {
@@ -203,8 +209,13 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 			# Choose transcripts with TSL≤3 OR NA with the chosen sj
 			tminus<-left_join(tminus, transcripts[,2:3], by='t_name')
 			tminus[,5:6]<-apply(tminus[,5:6], 2, as.character)
-			tminus[which(tminus$t_support_lvl=='NA'),6]<-0
-			tminus<-tminus[which(tminus$t_support_lvl<=3&tminus$chosen_sj!="0"),]
+			if (any(!is.na(tminus$t_support_lvl)))
+			{
+				tminus[which(tminus$t_support_lvl=='NA'),6]<-0
+				tminus<-tminus[which(tminus$t_support_lvl<=3&tminus$chosen_sj!="0"),]
+			} else {
+				tminus<-tminus[which(tminus$chosen_sj!="0"),]
+			}
 			# only isos with the chosen sj will be passed to primer3
 			plc<-lapply(strsplit(as.character(tminus$exons_junction), ' '), as.numeric)
 			hld<-lapply(strsplit(as.character(tminus$chosen_sj), ' '), as.numeric)
@@ -261,7 +272,7 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 				# are preferred
 				charlie <- do.call(rbind, lapply(psc$detail, function (q)
 				{
-					bulba <- strsplit(q, '[ _]')[[1]]
+					bulba <- strsplit(q, '[ -]')[[1]]
 					saur <- which((seq_len(length(bulba)) %% 2)==0)
 					pika <- as.integer(bulba[saur])
 					chu <- which((seq_len(length(bulba)) %% 2)==1)
@@ -305,7 +316,7 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 				# should be captured by each designed pair -> romeo
 				# and what score gets calculated according to the
 				# significance threshold selected -> bravo
-				tango <- do.call(rbind,lapply(strsplit(charlie[,2], '[ _]'), function (f)
+				tango <- do.call(rbind,lapply(strsplit(charlie[,2], '[ -]'), function (f)
 				{
 					wat <- pun[match(f, names(pan))]
 					wit <- pan[match(f, names(pan))]
@@ -360,31 +371,7 @@ swag <- do.call(rbind, lapply(unique(tplus$name), function (e)
 swag[,which(sapply(swag, class)=='numeric')]<- apply(swag[,which(sapply(swag, class)=='numeric')],
 					    2, round, digits=2)
 
-# Thorough symbol check with GENCODE annotation
-# you need a gencode table for this
-barcoder <- function (string, feature)
-{
-	feature_list <- strsplit(string, '; ')[[1]]
-	barcode_pos <- grep(feature, feature_list)
-	snippet <- sapply(strsplit(feature_list[barcode_pos], ' '), `[`, 2)
-	if (length(barcode_pos)==0) {snippet <- 'NA'}
-	return(snippet)
-}
-genid <- lapply(gencode$features[which(gencode$type == 'gene')],
-	barcoder, feature='gene_id')
-genid <- as.character(vercutter(genid))
-gename <- lapply(gencode$features[which(gencode$type == 'gene')],
-	barcoder, feature='gene_name')
-gename <- as.character(gename)
-genhugo <- lapply(gencode$features[which(gencode$type == 'gene')],
-	barcoder, feature='hgnc_id')
-genhugo <- as.character(genhugo)
-gentab <- as.data.frame(cbind(genid, gename, genhugo))
-names(gentab) <- c('name', 'symbol', 'HGNC_support')
-gentab$name<- vercutter(gentab$name)
-
-swag <- left_join(swag, gentab, by='name')
-swag <- swag[, c(1, 8, 9, 2:4, 6, 7, 5)]
+swag <- swag[, c(1, 8, 2:4, 6, 7, 5)]
 
 save(swag, file='finished_product.RData')
 system('rm *temp')
@@ -404,7 +391,7 @@ fin <- do.call(rbind, lapply(unique(swag$name), function (ua)
 			{
 				if (x>quantile(pan, (as.numeric(PEXPRESSION)/100)))
 			{ as.double((x/max(pan))+100) } else { 0 }})
-			mz <- lapply(names(pun[pun!=0]), function(e) {grep(e, me[me$score>0, 9])})
+			mz <- lapply(names(pun[pun!=0]), function(e) {grep(e, me[me$score>0, 'amplicons'])})
 			me[me$score>0, ][unlist(unique(lapply(mz, function (e) {e[1]}))),]
 		} else
 		{
@@ -416,10 +403,10 @@ if (any(is.na(fin$name))) {fin<- fin[-which(is.na(fin$name)),]}
 
 if (nrow(fin)!=0)
 {
-	fin$t_name <- sapply(strsplit(fin$t_name, '_'), `[`, 1)
+	fin$t_name <- gsub('_[0-9]*$', '', fin$t_name)
 	fin[, 2:3] <- apply(fin[2:3], 2, as.character)
 
-	ayy <- cbind(sapply(fin$symbol, paste0, '_FOR'), fin$forward, sapply(fin$symbol, paste0, '_REV'), fin$reverse)
+	ayy <- cbind(sapply(fin$name, paste0, '_FOR'), fin$forward, sapply(fin$name, paste0, '_REV'), fin$reverse)
 	fin2 <- do.call(rbind, apply(ayy, 1, function (q) {as.data.frame(rbind(q[1:2], q[3:4]))}))
 	names(fin2)<-c('primer_symbol','primer_sequence')
 }
@@ -462,7 +449,7 @@ if (nrow(fin)!=0)
 	#write.xlsx(fin, 'validation_candidates.xlsx', asTable = T, overwrite = T, showNA=F)
 	#write.xlsx(fin2, 'primers_order.xlsx', asTable = T, overwrite = T, showNA=F)
 	# Prep a table for a primersearch check of primers vs the genome
-	write.table(fin[, c(3,5,6)], 'val_cand_4genomcheck.txt', row.names=F, sep='\t', quote=F, na="")
+	write.table(fin[, c(3,4,5)], 'val_cand_4genomcheck.txt', row.names=F, sep='\t', quote=F, na="")
 	# Launch the in-silico PCR vs the genome
 	system('nohup bash psearcher_fingen.sh &')
 	system('echo [IsoPrimer] $(date) Generating reports and checking cDNA specificity >> IP_Log.out')
@@ -537,15 +524,15 @@ if (nrow(fin)!=0)
 		g <- fin[h, ]
 		g <- sapply(g, as.character)
 		# Gather data from fin's line
-		fw <- g[5]
-		rv <- g[6]
+		fw <- g[4]
+		rv <- g[5]
 		ensid <- g[1]
-		gene <- g[3]
+		gene <- g[1]
 		# k is the transcript
-		k <- g[4]
-		amp <- g[9]
+		k <- g[3]
+		amp <- g[8]
 		# Process the amplicon detail
-		imp <- strsplit(amp, '[ _]')[[1]][1:(str_count(amp, 'ENST')*2) %% 2==1]
+		imp <- strsplit(amp, '[ -]')[[1]][1:(str_count(amp, '-')*2) %% 2==1]
 		# Retrieve isoform sequences
 		tapener <- cln[which(cln$t_name%in%imp),5]
 		tapener <- as.character(gsub(':', '', tapener))

@@ -3,7 +3,7 @@
 # This file is the main launcher of IsoPrimer
 # the options required should be inserted in the dedicated lines as follows:
 # number of threads
-# path to the Kallisto executable
+# path to the Kallisto executable or 'custom' if the transcscript quantitation is manually provided
 # path to the Primer3 executable
 # path to the EMBOSS PrimerSearch executable
 # Expression threshold percentage 
@@ -21,7 +21,7 @@ nohup Rscript IP.R \
 	primer3_core \
 	primersearch \
 	50 \
-	0 \
+	20 \
 	./test/test_transcriptome.fa \
 	./test/test_annotation.gtf \
 	./test/test_genome.fa \

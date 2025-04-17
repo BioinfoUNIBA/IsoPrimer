@@ -12,6 +12,7 @@ rm \
 	../IsoPrimer/*RData \
 	../IsoPrimer/*primersearch \
 	../IsoPrimer/[0-9]*_*txt \
+	../IsoPrimer/*temp \
 	outputs/[0-9]*_*txt 2>/dev/null
 
 rm \
