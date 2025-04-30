@@ -1,5 +1,5 @@
 IsoPrimer is a pipeline built to automate the designing process of PCR primer pairs, targeting specific sets of expressed splicing variants.
-IsoPrimer works on the ENSEMBL annotation and allows the prioritization of the designed primers pairs, according to the level of expression of the splicing variants of a gene in an RNA-seq dataset.
+IsoPrimer works with any annotation in the gtf format and allows the prioritization of the designed primers pairs, according to the level of expression of the splicing variants of a gene in an RNA-seq dataset.
 The pipeline leverages Kallisto, Primer3 and EMBOSS PrimerSearch tools, respectively to:
 1. identify the most expressed isoforms per gene in RNA-seq data;
 1. design and consider all primer pairs overlapping exon-exon junctions common to the expressed variants;
@@ -98,21 +98,21 @@ bash launcher.sh
 
 ### Preparing the transcriptome headers
 
-It is recommended to match the ENSEMBL annotation and transcriptome to
-coherently process all transcript sequences associated to a target gene
-that are referenced to in the chosen annotation.
+To ensure consistent processing of every transcript of a given target gene,
+use an annotation file and a transcriptome FASTA whose sequence headers match
+the transcript identifiers in that annotation.
 
 The headers of the transcriptome FASTA file must conform to the
 following format:
 
 ```bash
->ensembl-gene-id_ensembl-transcript-id_gene-symbol_gene-type
+>transcript-id
 ```
 
 As an example:
 
 ```bash
->ENST00000456328.2_ENSG00000290825.1_DDX11L2-202_lncRNA
+>ENST00000456328.2
 ```
 
 IsoPrimer will prepare a complying copy of the transcriptome FASTA file:
@@ -143,13 +143,23 @@ paired-end mode and with the `--rf-stranded` option.
 ### Specifying input files
 
 Use targets.txt to specify what target genes to design primer pairs for.
-The file should contain a list of the gene ensembl IDs. E.g.
+The file should contain a list of the gene IDs. E.g.
 
 ```bash
 ENSG00000224609
 ENSG00000227811
 ENSG00000225937
 ```
+
+if using the ENSEMBL annotation or 
+
+```bash
+FGGY-DT
+INKA2-AS1
+PCA3
+```
+
+for the ncbi annotation.
 
 Specify the paths to the RNA-seq sample **folders** in
 `quantification/sample_list.txt`. E.g.
@@ -211,10 +221,9 @@ III) primer_omnibus which reports all primer pairs designed for all target genes
 The output spreadsheet I) and III) report for each primer pair the
 following information:
 
--   ENSEMBL gene ID
+-   gene ID
 -   IsoPrimer score: the higher, the better
--   Gene symbol
--   ENSEMBL transcript ID
+-   transcript ID
 -   Forward primer sequence
 -   Reverse primer sequence
 -   *Expressed amplified*, the number of isoforms whose expression is
@@ -223,7 +232,7 @@ following information:
     expression, quantified in TPM, that is amplified by the primer pair
 -   The amplicons predicted by the PrimerSearch in-silico PCR expressed
     as a space separated list of
-    `<transcript-ensembl-id_amplicon-length>` entries
+    `<transcript_id-amplicon_length>` entries
 
 IsoPrimer was designed to address all the expressed splicing variants,
 but this may not be possible with a single primer pair if the variants
