@@ -80,9 +80,11 @@ if (length(grep('transcript_id', names(seqs)))==0)
 agnames <- transcripts$name[match(atnames, transcripts$t_name)]
 names(seqs) <- paste(atnames, agnames, sep=';')
 if (!any(agnames%in%transcripts$name)) {stop(paste0('Please provide the transcriptome FASTA file headers as ">', atnames[1], '"'), call.=FALSE)}
-writeXStringSet(seqs, 'mod_transcriptome.fa')
+seqx<- seqs[!is.na(agnames)]
+writeXStringSet(seqx, 'mod_transcriptome.fa')
 
 seqs <- data.frame(agnames, atnames, as.character(seqs, use.names=F))
+seqs<- seqs[!is.na(agnames),]
 names(seqs) <- c('name', 't_name', 'sjs')
 seqs <- right_join(transcripts[,c(2,7:8)], seqs, by='t_name')
 seqs <- seqs[, match(c("name", "strand", "t_name", "length", "sjs"), names(seqs))]

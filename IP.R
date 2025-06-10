@@ -8,14 +8,14 @@ required_packages<- list('dplyr',
 	'msa')
 lapply(required_packages, function (pack)
 {
-	if (!require(pack, quietly=T, character.only = T))
+	if (suppressMessages(!require(pack, quietly=T, character.only = T)))
 	{
 		install.packages(pack, repos = "https://cloud.r-project.org")
 	}
 })
 lapply(required_packages, function (pack)
 {
-	if (!require(pack, quietly=T, character.only = T))
+	if (suppressMessages(!require(pack, quietly=T, character.only = T)))
 	{
 		BiocManager::install(pack)
 	}
@@ -38,7 +38,7 @@ if (length(args)!=10)
 {
 	m0<-"The following arguments must be supplied:
 		\t\t<threads number>
-		\t\t<kallisto>
+		\t\t<kallisto> (or 'custom')
 		\t\t<primer3>
 		\t\t<primersearch>
 		\t\t<expression threshold %>
@@ -79,7 +79,16 @@ m1<-paste0("Arguments supplied: \n",
 	"\t\tTranscriptome (.fa): ", TRANSCRIPTOME, "\n",
 	"\t\tAnnotation (.gtf): ", ANNOTATION, "\n",
 	"\t\tGenome (.fa): ", GENOME, "\n")
-system(paste0('echo [IsoPrimer] $(date) Primer design started: "', as.character(m1), '"', ' > IP_Log.out'))
+
+# Is every dependency ready?
+if (!grepl('kallisto', KALLISTO)) {we<-2; pat<-' '} else {we<-3; pat<-', Kallisto '}
+dding<- 'command -v primer3_core primersearch kallisto | wc -l'
+ifelse(as.numeric(system(dding, intern=T)) == we &
+	all(sapply(required_packages, function (pack){suppressMessages(require(pack, quietly=T, character.only = T))})),
+		system('echo [IsoPrimer] $(date) IsoPrimer dependencies loaded successfully > IP_Log.out'),
+		stop(paste0('Please make sure Primer3, Primersearch', pat, 'and all necessary R dependencies are installed. See https://github.com/BioinfoUNIBA/IsoPrimer?tab=readme-ov-file#requirements'), call.=F))
+
+system(paste0('echo [IsoPrimer] $(date) Primer design started: "', as.character(m1), '"', ' >> IP_Log.out'))
 
 # cln stores info about the isoforms
 # tplus also, but sjs positions are numbered and not identified by colons
@@ -99,7 +108,7 @@ Sys.setenv(TRANSCRIPTOME = TRANSCRIPTOME)
 
 # Transcript quantification
 # Build the Kallisto index and start the quantification process
-if (KALLISTO=='custom')
+if (KALLISTO=='custom' | file.exists('quantification/KA_CountingOutput/kalcounts.tsv'))
 {
 	system('echo [IsoPrimer.Kallisto] $(date) Transcript quantification already provided >> ../IP_Log.out')
 } else {

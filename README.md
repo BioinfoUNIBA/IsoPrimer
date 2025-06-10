@@ -7,15 +7,16 @@ The pipeline leverages Kallisto, Primer3 and EMBOSS PrimerSearch tools, respecti
 
 ## Requirements
 
+IsoPrimer was designed to run on GNU+Linux systems and it requires the following programs:
+
 -   [R](https://www.r-project.org/) (at least 3.6.x)
 -   [Bash](https://www.gnu.org/software/bash/) (at least 4.x.x)
 -   [Kallisto](https://www.nature.com/articles/nbt.3519)
 -   [Primer3](https://github.com/primer3-org/primer3)
 -   [EMBOSS PrimerSearch](https://www.bioinformatics.nl/cgi-bin/emboss/help/primersearch)
 
-The following R packages (in the versions indicated or higher) are
-necessary to run the pipeline. IsoPrimer will automatically download and
-install them if needed.
+Furthermore, the following R packages (in the versions indicated or newer) are
+necessary to run the pipeline. 
 
 -   dplyr 0.8.3
 -   BiocManager 1.30.10
@@ -25,9 +26,20 @@ install them if needed.
 -   stringr 1.4.0
 -   msa 1.18.0
 
-R, Kallisto, Primer3 and PrimerSearch are available as part of the
-respective **conda** packages. An ad-hoc environment may be created
-(changing `<my-env>` with the desired name of the environment) as:
+R, Kallisto, Primer3, PrimerSearch and the necessary R packages are
+available as part of the respective **conda** packages. 
+If necessary, to install conda, it is important to have a compatible Python version
+and we suggest to refer to conda's [installation guide](https://www.anaconda.com/docs/getting-started/miniconda/install#macos-linux-installation).
+If `conda` is available on the system running IsoPrimer, the dependency
+installation process via conda may be automated by using the helper script `install.sh`
+bundled with IsoPrimer:
+
+```bash
+bash install.sh
+```
+
+Or you may install the IsoPrimer dependencies through conda manually by creating
+an ad-hoc environment (changing `<my-env>` with the desired name of the environment) as:
 
 ```bash
 conda create --name <my-env>
@@ -42,13 +54,25 @@ conda activate <my-env>
 the necessary dependencies may be installed via the following commands:
 
 ```bash
-conda install conda-forge::r-base
+conda install conda-forge::r-base=4.3.3
 conda install bioconda::emboss
 conda install bioconda::primer3
 conda install bioconda::kallisto=0.46.2
+conda install conda-forge::r-dplyr
+conda install conda-forge::r-biocmanager
+conda install bioconda::bioconductor-biostrings
+conda install conda-forge::r-doparallel
+conda install conda-forge::r-openxlsx
+conda install conda-forge::r-stringr
+conda install bioconda::bioconductor-msa
 ```
 
-**Alternatively**, pre-compiled versions of Kallisto are available
+Upon successful loading of the dependencies, a dedicated message will be printed both
+to stdout (see the `nohup.out` file) and the `IP_Log.out` file.
+
+### Alternatively
+
+Pre-compiled versions of Kallisto are available
 [here](https://pachterlab.github.io/kallisto/download) or the program
 may be compiled from source following the instructions available at the
 author's [github page](https://github.com/pachterlab/Kallisto/blob/master/INSTALL.md).
@@ -66,7 +90,11 @@ wget ftp://emboss.open-bio.org:21/pub/EMBOSS/EMBOSS-6.6.0.tar.gz
 and then by compiling it as described in the dedicated
 [page](https://emboss.sourceforge.net/download/).
 
+IsoPrimer will automatically download and install the required R packages if necessary.
+
 ## Setting up the pipeline
+
+### Pipeline setup outline
 
 The outline of the pipeline setup is as follows:
 
@@ -83,7 +111,12 @@ cd IsoPrimer
 bash launcher.sh
 ```
 
-Remove the test specific files by running the following in the IsoPrimer folder:
+The progress of IsoPrimer may be monitored via the `nohup.out` (stderr and
+stdout) and `IP_Log.out` (IsoPrimer messages) files.
+If the test run completed successfully all necessary dependencies are correctly installed
+and the message 'Primer design complete' will be printed in the `IP_Log.out` file.
+
+You may now remove the test specific files by running the following in the IsoPrimer folder:
 
 ```bash
 bash purger.sh
@@ -208,9 +241,6 @@ Start the primer design:
 bash launcher.sh
 ```
 
-The progress of IsoPrimer may be monitored via the `nohup.out` (stderr and
-stdout) and `IP_Log.out` (IsoPrimer messages) files.
-
 ## Results
 
 The main final product of the primer design process consists in a primers.xlsx file with
@@ -259,12 +289,12 @@ generated in the *outputs* folder with the following information:
 ## Primer design for manually picked isoforms
 
 IsoPrimer allows for designing primer pairs targeting known variants even without RNA-seq data.
-In fact, given the appropriate annotation files and a customized Kallisto
+In fact, given the appropriate annotation files and a customized
 quantification output specified in the `IsoPrimer/quantification/KA_CountingOutput/kalcounts.tsv`,
 prepared by manually entering high expression values for one or more isoforms of interest,
 IsoPrimer will provide primer pairs designed to amplify the manually prioritized isoforms.
 For example, to instruct IsoPrimer to specifically design a primer pair for the *Odc1-207* transcript variant
-(ENSEMBL ID ENSMUST00000222250) of the murine *Odc* gene, without performing the Kallisto transcript quantification,
+(ENSEMBL ID ENSMUST00000222250) of the murine *Odc* gene, without performing the transcript quantification,
 the user may provide a `kalcounts.tsv` file structured as exemplified in the table below.
 
 | t_name            | tseq  |
