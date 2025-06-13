@@ -36,6 +36,7 @@ bundled with IsoPrimer:
 
 ```bash
 bash install.sh
+conda activate isoprimer
 ```
 
 Or you may install the IsoPrimer dependencies through conda manually by creating
